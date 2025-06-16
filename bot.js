@@ -2,10 +2,11 @@ const mineflayer = require('mineflayer');
 const express = require('express');
 const app = express();
 
-// Web ping to prevent Render sleep
+// Keep Render project awake
 app.get('/', (req, res) => res.send('Bot is running.'));
 app.listen(process.env.PORT || 3000);
 
+// Start bot
 function startBot() {
   const bot = mineflayer.createBot({
     host: 'Anasvirat.aternos.me',
@@ -19,12 +20,23 @@ function startBot() {
   });
 
   bot.once('spawn', () => {
-    console.log('🚀 Bot spawned into world');
+    console.log('🚀 Bot spawned!');
     bot.chat('🤖 Bot is arrived!');
+
+    // Move forward and stop every few seconds to prevent AFK kick
+    let moving = false;
+    setInterval(() => {
+      bot.setControlState('forward', moving);
+      moving = !moving;
+    }, 5000);
+  });
+
+  bot.on('kicked', (reason, loggedIn) => {
+    console.log('❌ Kicked from server:', reason);
   });
 
   bot.on('end', () => {
-    console.log('❌ Disconnected, trying to reconnect...');
+    console.log('🔁 Bot disconnected. Reconnecting in 5s...');
     setTimeout(startBot, 5000);
   });
 
@@ -32,5 +44,10 @@ function startBot() {
     console.log('⚠️ Bot error:', err);
   });
 }
+
+// Prevent Render crash on error
+process.on('uncaughtException', (err) => {
+  console.log('❗ Uncaught Exception:', err);
+});
 
 startBot();
