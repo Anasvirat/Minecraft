@@ -1,4 +1,10 @@
 const mineflayer = require('mineflayer');
+const express = require('express');
+const app = express();
+
+// Web ping to prevent Render sleep
+app.get('/', (req, res) => res.send('Bot is running.'));
+app.listen(process.env.PORT || 3000);
 
 function startBot() {
   const bot = mineflayer.createBot({
@@ -15,31 +21,6 @@ function startBot() {
   bot.once('spawn', () => {
     console.log('🚀 Bot spawned into world');
     bot.chat('🤖 Bot is arrived!');
-
-    // Auto message every 5 minutes
-    setInterval(() => {
-      bot.chat('🤖 I am still online and active!');
-    }, 300000);
-
-    // Respond to player messages
-    bot.on('chat', (username, message) => {
-      if (username === bot.username) return;
-      const msg = message.toLowerCase();
-
-      if (msg.includes('hi') || msg.includes('hello')) {
-        bot.chat(`👋 Hello ${username}!`);
-      } else if (msg.includes('where')) {
-        bot.chat("🗺️ I'm just chilling AFK!");
-      } else if (msg.includes('who are you')) {
-        bot.chat("🤖 I'm your friendly AFK bot!");
-      }
-    });
-
-    // Light jumping to prevent AFK kick
-    setInterval(() => {
-      bot.setControlState('jump', true);
-      setTimeout(() => bot.setControlState('jump', false), 500);
-    }, 10000);
   });
 
   bot.on('end', () => {
